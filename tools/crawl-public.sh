@@ -1,44 +1,50 @@
 #!/bin/bash
-# crawl-public.sh — Phase 1 discovery for the PUBLIC hemisphere ONLY.
-# Inventories every public kody-w repo, marks which are rapp-* estate, and
-# seeds brain/inventory.json + brain/INDEX.md. Reads ONLY public metadata —
-# it never opens a private repo's contents. Opus extends this into full
-# per-node carding (Phase 2) and the freshness loop (Phase 4).
+# crawl-public.sh — Phase 1 discovery + seed for the PUBLIC hemisphere ONLY.
+# Inventories every public kody-w repo and writes ONE seed card per repo
+# (brain/cards/*.json). Reads ONLY public metadata — never a private repo's
+# contents. This is a single-writer bootstrap (one bulk commit); Opus later
+# DEEPENS individual cards via tools/save-card.sh (the parallel path).
+# INDEX.md / graph.json are NOT written here — CI (reduce.yml) derives them.
 set -euo pipefail
-
-HERE="$(cd "$(dirname "$0")/.." && pwd)"
-BRAIN="$HERE/brain"; mkdir -p "$BRAIN/cards"
+HERE="$(cd "$(dirname "$0")/.." && pwd)"; cd "$HERE"
+BRAIN="$HERE/brain"; mkdir -p "$BRAIN/cards" "$BRAIN/claims"
 
 echo "[crawl] inventorying public kody-w repos…"
 gh repo list kody-w --limit 500 --no-archived \
   --json name,visibility,description,pushedAt,url,isFork \
   --jq '[.[] | select(.visibility=="PUBLIC")]' > "$BRAIN/inventory.json"
 
-TOTAL=$(python3 -c "import json;print(len(json.load(open('$BRAIN/inventory.json'))))")
-RAPP=$(python3 -c "import json;print(sum(1 for r in json.load(open('$BRAIN/inventory.json')) if r['name'].startswith('rapp') or r['name'] in ('RAPP','RAR')))")
-echo "[crawl] $TOTAL public repos, ~$RAPP in the rapp estate"
-
 python3 - "$BRAIN" <<'PY'
-import json, sys
+import json, sys, datetime
 brain = sys.argv[1]
 inv = json.load(open(f"{brain}/inventory.json"))
 def cls(n):
     if n == "rapp-installer": return "kernel"
     if n in ("rapp-canary","rapp-nightly","rapp-alpha","rapp-beta"): return "ring"
-    if n in ("RAPP",): return "distro"
+    if n == "RAPP": return "distro"
     if n.startswith("rapp-holo") or n in ("rapp-frame-net","rapp-spine"): return "spec"
-    if n in ("rapp-train","rapp-tower","rapp-second-brain"): return "brain/deck"
-    if n.startswith("rapp") or n in ("RAR",): return "tool/app"
+    if n in ("rapp-train","rapp-tower","rapp-second-brain","rapp-map"): return "brain/deck"
+    if n.startswith("rapp") or n == "RAR": return "tool/app"
     return "adjacent"
-rows = sorted(inv, key=lambda r: (cls(r['name']), r['name'].lower()))
-with open(f"{brain}/INDEX.md","w") as f:
-    f.write("# Public brain — repo index (Phase 1 seed)\n\n")
-    f.write(f"{len(inv)} public kody-w repos. Full cards land in `cards/` as Phase 2 runs.\n\n")
-    f.write("| repo | class | pushed | what |\n|---|---|---|---|\n")
-    for r in rows:
-        d = (r.get('description') or '').replace('|','/')[:80]
-        f.write(f"| [{r['name']}]({r['url']}) | {cls(r['name'])} | {r['pushedAt'][:10]} | {d} |\n")
-print(f"[crawl] wrote {brain}/INDEX.md")
+made = 0
+for r in inv:
+    cid = f"repo:kody-w/{r['name']}"
+    safe = cid.replace('/','_').replace(':','_').replace('@','_')
+    card = {
+        "id": cid, "kind": "repo", "name": r["name"], "visibility": "public",
+        "estate_class": cls(r["name"]), "role": "", "entry_points": [r["url"]],
+        "protocols": [], "edges": [],
+        "health": {"last_commit": r["pushedAt"], "ci": "unknown",
+                   "pages": None, "is_fork": r["isFork"]},
+        "summary": (r.get("description") or "").strip() or "(no description — deep-card in Phase 2)",
+        "provenance": {"crawled_at": None, "depth": "seed",
+                       "sources": [f"gh repo metadata: {r['url']}"]},
+    }
+    json.dump(card, open(f"{brain}/cards/{safe}.json","w"), indent=1, sort_keys=True)
+    made += 1
+print(f"[crawl] wrote {made} seed cards (rapp estate: "
+      f"{sum(1 for r in inv if cls(r['name']) not in ('adjacent',))})")
 PY
 
-echo "[crawl] Phase 1 seed complete. Next: Phase 2 deep-carding (see OPUS-HANDOFF.md)."
+bash "$HERE/tools/rebuild.sh"
+echo "[crawl] Phase 1 seed complete. Deep-card via Phase 2 (see OPUS-HANDOFF.md + COORDINATION.md)."

@@ -52,6 +52,31 @@ misses:
    Log what each round added. Silent truncation is the enemy — if you cap,
    say so in the card provenance.
 
+## Parallel writers — MANY Opuses build this at once
+
+Multiple Opus sessions push to this brain concurrently. It is conflict-free
+by construction (full protocol: `COORDINATION.md`). The essentials:
+
+- **Cards are per-node files** (`brain/cards/<id>.json`); you only write cards
+  you claimed. Different writers = different files = no conflict.
+- **Never hand-edit `INDEX.md` / `graph.json` / `llms.txt`** — CI
+  (`.github/workflows/reduce.yml`) is their SOLE writer, rebuilt from cards
+  on every push. That is the anti-collision keystone.
+- **Divide the work**: `tools/shard.sh <N> <i>` gives writer *i* of *N* its
+  slice of still-seed-depth nodes (deterministic, balanced — verified 4-way).
+  `tools/claim.sh <id>` is the atomic backstop if you're not sharding.
+- **Save one card at a time**: `tools/save-card.sh <card>` — runs the tower
+  guard, then pull-rebase-push with bounded retry.
+
+A typical parallel session:
+```bash
+git pull --rebase --autostash
+for id in $(tools/shard.sh 4 $MY_INDEX); do
+  #  … fetch the node's public surface, build the deep card (SCHEMA.md) …
+  tools/save-card.sh "brain/cards/$(echo "$id" | tr '/:@' '___').json"
+done
+```
+
 ## Phase 2 — deep-card each node (parallelizable; this is a Workflow)
 
 Per node, fetch its public surface (README, key files, Pages, CI state, spec
