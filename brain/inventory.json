@@ -688,7 +688,7 @@
   "visibility": "PUBLIC"
  },
  {
-  "description": "\ud83c\udfae First RACon vTwin rapplication \u2014 the Cowork Cookbook as a portable .egg cartridge: hotload one agent.py, the brainstem hatches it as its own twin. recipe\u2192agent.py with WorkIQ.",
+  "description": "\ud83c\udfae First RACon vTwin rapplication \u2014 the Cowork Cookbook as a portable .egg cartridge: hotload one agent.py, the brainstem hatches it as its own twin. recipe\u2192agent.py with workplace analytics.",
   "isFork": false,
   "name": "cowork-cookbook-rapp",
   "pushedAt": "2026-07-16T04:25:00Z",
