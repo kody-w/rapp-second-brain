@@ -104,7 +104,12 @@ The brain must be queryable, not just stored:
   cards over `/chat`. This is the payoff: the ecosystem answering questions
   about itself in natural language. The private hemisphere ships the same
   agent reading the union of both card sets, but only ever runs locally.
-- Optional: a static `index.html` brain-explorer on this repo's Pages.
+- **Enable Pages here once deep-carding lands** (deferred from the seed
+  phase on purpose — a seed index isn't worth publishing; a carded one is):
+  `gh api -X POST repos/kody-w/rapp-second-brain/pages -f 'source[branch]=main' -f 'source[path]=/'`
+  then link it from the rapp-train deck's "wider estate" section (currently
+  links the repo). A static `index.html` brain-explorer over `graph.json`
+  is the richer version.
 
 ## Phase 4 — keep it alive (the freshness loop)
 
