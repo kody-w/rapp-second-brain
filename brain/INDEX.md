@@ -216,7 +216,7 @@
 - **tinyrenderer** (`repo:kody-w/tinyrenderer`) — . Support c++ code for a short computer graphics course
 - **twin** (`repo:kody-w/twin`) — . twin
 - **twin-binder** (`repo:kody-w/twin-binder`) — . Empty RAPPcards v1.1.2 binder — rebuild-from-memory demo. Ships with known incantations; click to summon via federation. Resolution is owner
-- **twin-egg-hatcher** (`repo:kody-w/twin-egg-hatcher`) — . Generic single-file hatcher for any RAPP digital-organism twin — public mirror of kody-w/aibast-twin
+- **twin-egg-hatcher** (`repo:kody-w/twin-egg-hatcher`) — . Generic single-file hatcher for any RAPP digital-organism twin — public mirror of kody-w/<private-repo>
 - **twitter-cashtag-heatmap** (`repo:kody-w/twitter-cashtag-heatmap`) — . A demonstration of using Node.js with Twitter's streaming capability to create a live heatmap via Socket.io!
 - **ultra-turmeric** (`repo:kody-w/ultra-turmeric`) — . (no description — deep-card in Phase 2)
 - **v86** (`repo:kody-w/v86`) — . x86 PC emulator and x86-to-wasm JIT, running in the browser

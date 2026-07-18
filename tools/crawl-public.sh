@@ -12,7 +12,28 @@ BRAIN="$HERE/brain"; mkdir -p "$BRAIN/cards" "$BRAIN/claims"
 echo "[crawl] inventorying public kody-w repos…"
 gh repo list kody-w --limit 500 --no-archived \
   --json name,visibility,description,pushedAt,url,isFork \
-  --jq '[.[] | select(.visibility=="PUBLIC")]' > "$BRAIN/inventory.json"
+  --jq '[.[] | select(.visibility=="PUBLIC")]' > "$BRAIN/inventory.raw.json"
+
+# BOUNDARY ENFORCEMENT: a stray PUBLIC description may mention a PRIVATE repo
+# name (e.g. "public mirror of kody-w/<private>"). The public hemisphere must
+# never COLLECT private names. Read private names (metadata only, as a
+# denylist) and redact any kody-w/<private> token from ingested text.
+gh repo list kody-w --limit 500 --json name,visibility \
+  --jq '[.[]|select(.visibility=="PRIVATE")|.name]' > "$BRAIN/.private-denylist.json"
+python3 - "$BRAIN" <<'PYRED'
+import json, re, sys
+brain = sys.argv[1]
+priv = set(json.load(open(f"{brain}/.private-denylist.json")))
+raw = json.load(open(f"{brain}/inventory.raw.json"))
+def redact(text):
+    if not text: return text
+    return re.sub(r'kody-w/([A-Za-z0-9._-]+)',
+                  lambda m: f"kody-w/<private-repo>" if m.group(1) in priv else m.group(0), text)
+for r in raw:
+    r["description"] = redact(r.get("description"))
+json.dump(raw, open(f"{brain}/inventory.json","w"), indent=1)
+PYRED
+rm -f "$BRAIN/inventory.raw.json" "$BRAIN/.private-denylist.json"
 
 python3 - "$BRAIN" <<'PY'
 import json, sys, datetime
