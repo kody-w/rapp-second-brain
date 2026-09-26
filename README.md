@@ -1,5 +1,9 @@
 # 🧠 rapp-second-brain — the ecosystem that knows itself
 
+<!-- rapp1:network-header:start -->
+[![RAPP/1](https://kody-w.github.io/rapp-hive-public/portfolio/badges/rapp-second-brain.svg)](https://github.com/kody-w/rapp-hive-public/blob/main/portfolio/repos/rapp-second-brain.md) · **New to RAPP?** [Start here: get your Brainstem →](https://github.com/kody-w/rapp-installer#start-here)
+<!-- rapp1:network-header:end -->
+
 A living map of the entire RAPP ecosystem — every repo, protocol, surface,
 and relationship — built so that any person or any AI can orient in minutes
 instead of months. This public repository is the **public hemisphere**;
